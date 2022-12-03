@@ -51,7 +51,7 @@ def get_score(elf: str, player: str) -> int:
 
 
 score = 0
-with open("input.txt", "r") as file:
+with open("./inputs/input2.txt", "r") as file:
     for ronda in file:
         list_ = ronda.strip().split(sep=" ")
         score += get_score(elf=list_[0], player=list_[1])
