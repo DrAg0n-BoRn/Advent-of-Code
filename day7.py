@@ -41,6 +41,7 @@ def part_one():
     level = 0
     for line in data:
         if "$ cd .." in line:
+            history[level]["control"] = True
             history.pop()
             level -= 1
         elif "$ cd" in line:
