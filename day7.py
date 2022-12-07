@@ -12,7 +12,7 @@ def preprocess():
     # Build home directory
     home = {"daxiao": 0, "control": True}
     to_pop = 0
-    for index, line in enumerate(data):
+    for line in data:
         if "$" in line: 
             if "$ ls" in line or "$ cd /" in line:
                 to_pop += 1
