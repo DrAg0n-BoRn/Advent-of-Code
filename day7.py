@@ -5,37 +5,42 @@
 8888Y"  88 88  Yb 888888  YboodP   88    YbodP  88  Yb  dP        88 YY 88 dP""""Yb 8888Y"  88  Y8 888888 8bodP' 8bodP' 
 '''
 
-# --- Preprocessing ---
-def preprocess():
-    with open("./inputs/input7.txt") as file:
-        data = [line.strip() for line in file.readlines()]
-    # Build home directory
-    home = {"daxiao": 0, "control": True}
-    to_pop = 0
-    for line in data:
-        if "$" in line: 
-            if "$ ls" in line or "$ cd /" in line:
-                to_pop += 1
-                continue
+# --- Get Directory Sizes ---
+def get_size() -> list[int]:
+    def preprocess():
+        with open("./inputs/input7.txt") as file:
+            data = [line.strip() for line in file.readlines()]
+        # Build home directory
+        home = {"daxiao": 0, "control": True}
+        to_pop = 0
+        for line in data:
+            if "$" in line: 
+                if "$ ls" in line or "$ cd /" in line:
+                    to_pop += 1
+                    continue
+                else:
+                    break
+            elif "dir" in line[:3]:
+                home[line[4:]] = {}
             else:
-                break
-        elif "dir" in line[:3]:
-            home[line[4:]] = {}
-        else:
-            home["daxiao"] += int(line.split(sep=" ")[0])
-        to_pop += 1
-    # Pop used lines
-    new_data = data[::-1]
-    for _ in range(to_pop):
-        new_data.pop()
-    data = new_data[::-1]
-    
-    return data, home
+                home["daxiao"] += int(line.split(sep=" ")[0])
+            to_pop += 1
+        # Pop used lines
+        new_data = data[::-1]
+        for _ in range(to_pop):
+            new_data.pop()
+        data = new_data[::-1]
+        # Return home directory and new data
+        return data, home
 
+    sizes = []
+    def recursion(dict_: dict):
+        for key, value in dict_.items():
+            if type(value) is dict:
+                recursion(value)
+            elif type(value) is int:
+                sizes.append(value)
 
-# --- PART I ---
-sizes = []
-def part_one():
     data, home = preprocess()
     history = [home]
     level = 0
@@ -69,26 +74,34 @@ def part_one():
         elif "$ ls" in line or "dir" in line[:3]:
             continue
         else:
-            # add level size if not repeated
+            # add directory size if not already added
             if history[level]["control"] == False:
                 for pointer in history:
                     pointer["daxiao"] += int(line.split(sep=" ")[0])
-    
     # Parse directories
     recursion(home)
-    # Get answer
+    return sizes
+
+
+# --- PART I ---
+def part_one():
+    sizes = get_size()
     total = 0
     for size in sizes:
         if size <= 100000:
             total += size
     print(total)
 
-def recursion(dict_: dict):
-    for key, value in dict_.items():
-        if type(value) is dict:
-            recursion(value)
-        elif type(value) is int:
-            sizes.append(value)
-
 
 # --- PART II ---
+def part_two(drive: int=70000000, required: int=30000000):
+    sizes = get_size()
+    
+    used = max(sizes)
+    remaining = drive - used
+    
+    for directory in sorted(sizes):
+        if (remaining + directory) >= required:
+            print(directory)
+            break
+
