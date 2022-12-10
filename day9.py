@@ -8,83 +8,110 @@
     \_\/ \_\/ \_____\/ \_\/     \_____\/     \__\/ \__\/ \__\/\__\/ \____/_/ \__\/ \__\/ \_____\/ \_____\/ \_____\/ 
 '''
 # --- Preprocessing ---
-def preprocess():
+def preprocess() -> list[tuple[str,int]]:
     with open("./inputs/input9.txt", "r") as file:
         data = [(line.strip().split(" ")[0], int(line.strip().split(" ")[1])) for line in file.readlines()]
     return data
 
+# --- PART I % PART II ---
+class Knot():
+    def __init__(self):
+        self.x = 100
+        self.y = 100
+        self.stalk_x = 100
+        self.stalk_y = 100
+        self.recorrido = [(self.x, self.y)]
+        self.id = id(self)
+                
+    def stalk(self, x, y):
+        # check if it left the zone
+        xrange = [self.x-1, self.x, self.x+1]
+        yrange = [self.y-1, self.y, self.y+1]
+        if x not in xrange or y not in yrange:
+            # check if x or y are equal, if true, follow in a straight line
+            if not self.check_sides(x, y):
+                # if previous position = corner, then move to a corner
+                if not self.check_corners(x, y):
+                    # if false, then it was at either N, E, W, S and moved like a chess horse
+                    self.check_symbol(x, y)
+            self.record()
+        else:
+            self.stalk_x, self.stalk_y = x, y
+        return self.x, self.y
+    
+    def check_sides(self, x, y):
+        if x == self.x:
+            self.y = self.stalk_y
+            self.stalk_x, self.stalk_y = x, y
+            return True
+        elif y == self.y:
+            self.x = self.stalk_x
+            self.stalk_x, self.stalk_y = x, y
+            return True
+        else:
+            return False
+        
+    def check_corners(self, x, y):
+        if self.stalk_x == self.x + 1 or self.stalk_x == self.x - 1:
+            if self.stalk_y == self.y + 1 or self.stalk_y == self.y - 1:
+                self.x, self.y = self.stalk_x, self.stalk_y
+                self.stalk_x, self.stalk_y = x, y
+                return True
+        return False
+    
+    def check_symbol(self, x, y):
+        axis_x = x - self.x
+        if axis_x > 0:
+            self.x += 1
+        else:
+            self.x -= 1
+        axis_y = y - self.y
+        if axis_y > 0:
+            self.y += 1
+        else:
+            self.y -= 1
+        self.stalk_x, self.stalk_y = x, y
+        
+    def record(self):
+        self.recorrido.append((self.x, self.y))
+        
+    def __repr__(self) -> str:
+        return f"Stalker Knot #{self.id}"
 
-# --- PART I ---
-def move(inst_: str, head: list[int], tail: list[int]):
-    xh, yh = head
-    xt, yt = tail
+
+def knot_maker(n: int=9):
+    knots = []
+    for _ in range(n):
+        new_knot = Knot()
+        knots.append(new_knot)
+    return knots
+
+
+def move_head(inst_: str, x: int, y: int):
     match inst_:
         case "U":
-            yh += 1
+            y += 1
         case "D":
-            yh -= 1
+            y -= 1
         case "R":
-            xh += 1
+            x += 1
         case "L":
-            xh -= 1
-    # Tail looks around
-    xrange = [xt-1, xt, xt+1]
-    yrange = [yt-1, yt, yt+1]
-    panic = False
-    if xh not in xrange or yh not in yrange:
-        panic = True
-    if panic:
-        x = xh - xt
-        y = yh - yt
-        if x == 0:
-            yt += y//2
-        elif y == 0:
-            xt += x//2
-        elif x > 0:
-            if y > 0:
-                xt += 1
-                yt += 1
-            else:
-                xt += 1
-                yt -= 1
-        else:
-            if y > 0:
-                xt -= 1
-                yt += 1
-            else:
-                xt -= 1
-                yt -= 1
-    return [xh, yh], [xt, yt]
+            x -= 1
+    return x, y
 
-def part_one():
+
+def solution():
+    Hx, Hy = 100, 100
+    knots = knot_maker()
     instructions = preprocess()
-    H = [1000, 1000]
-    T = [1000, 1000]
-    visited = [tuple(T)]
     for instruction in instructions:
         for _ in range(instruction[1]):
-            H, T = move(inst_=instruction[0], head=H, tail=T)
-            visited.append(tuple(T))
-    visited = set(visited)
-    print(len(visited))
-         
+            Hx, Hy = move_head(inst_=instruction[0], x=Hx, y=Hy)
+            newX, newY = knots[0].stalk(Hx, Hy)
+            for knot in knots[1:]:
+                newX, newY= knot.stalk(newX, newY)
+    # Print results
+    visits0 = set(knots[0].recorrido)
+    visits9 = set(knots[-1].recorrido)
+    print(f"First stalker knot: {len(visits0)}\nLast stalker knot: {len(visits9)}")
 
-# --- Part II ---
-# TODO
-
-'''
-Rules are ambiguous and not clear. According to the example: 
-
-                                    ...H..
-                                    ....1.
-                                    ..432.
-                                    .5....
-                                    6.....
-
-..H1..     "H" moves one position to (row 1, column 3)                           ..H1..
-...2..     Following the logic of part I: "Knot 1" moves to (row 1, column 4)    ....2.
-..43..     "Knot 2" can move to (row 2, column 5) and satisfy the condition.     ..43..
-.5....     However, it arbitrarily moves to (row2, column 4).                    .5....
-6.....                                                                           6.....
-
-'''
