@@ -13,7 +13,7 @@ def preprocess() -> list[tuple[str,int]]:
         data = [(line.strip().split(" ")[0], int(line.strip().split(" ")[1])) for line in file.readlines()]
     return data
 
-# --- PART I % PART II ---
+# --- PART I & PART II ---
 class Knot():
     def __init__(self):
         self.x = 100
@@ -114,4 +114,3 @@ def solution():
     visits0 = set(knots[0].recorrido)
     visits9 = set(knots[-1].recorrido)
     print(f"First stalker knot: {len(visits0)}\nLast stalker knot: {len(visits9)}")
-
