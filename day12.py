@@ -9,6 +9,7 @@
 # --- Preprocessing ---
 import string
 letters = string.ascii_lowercase
+letters_inv = letters[::-1]
 
 START_Y = None
 START_X = None
@@ -33,18 +34,17 @@ def preprocess() -> list[list]:
         temp_ = []
         x = 0
         for char in line:
+            global START_X, START_Y, END_X, END_Y
             if char == "S":
-                elevation = 0
-                global START_X, START_Y
-                START_Y = y
-                START_X = x
-            elif char == "E":
                 elevation = 26
-                global END_X, END_Y
                 END_Y = y
                 END_X = x
+            elif char == "E":
+                elevation = 0
+                START_Y = y
+                START_X = x
             else:
-                elevation = letters.find(char)
+                elevation = letters_inv.find(char)
             hill = Hill(value=elevation)
             temp_.append(hill)
             x += 1
@@ -183,5 +183,4 @@ def part_one():
     # for i in range(100):
     while walker_.active:
         walker_.walk()
-
 
